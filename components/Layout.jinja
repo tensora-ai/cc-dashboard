@@ -1,0 +1,27 @@
+{#def title, project, key, date #}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/picocss.2.0.6.indigo.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/htmx.1.9.12.min.js"></script>
+</head>
+
+<body>
+    <header class="container" style="padding: 0">
+        <Navigation title={title} project={project} key={key} date={date} />
+    </header>
+    <main id="main" class="container" hx-get="/content/{{ project }}/{{ key }}" hx-trigger="load, every 60s"
+        hx-include="[name='date']">
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <span aria-busy="true"></span>
+        </div>
+    </main>
+</body>
+
+</html>

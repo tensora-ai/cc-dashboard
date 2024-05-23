@@ -1,0 +1,11 @@
+{#def title, value, capacity #}
+{% set percentage = value / capacity * 100 %}
+
+<article>
+    <div class="grid">
+        <h6 class="span-2" style="margin-bottom: 8px">{{ title }}</h6>
+        <small style="text-align: right; color: blue">{{ percentage|int }}%</small>
+    </div>
+    <h3 style="margin-bottom: 8px">{{ value }}</h3>
+    <progress value="{{ value }}" max="{{ capacity }}" style="margin-bottom: 0"></progress>
+</article>

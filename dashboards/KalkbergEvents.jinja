@@ -1,0 +1,16 @@
+{#def title, chart, heatmap, current, maximum, average, minimum, capacity #}
+
+<Row>
+    <Tile title="Current" value={current} capacity={capacity} />
+    <Tile title="Maximum" value={maximum} capacity={capacity} />
+    <Tile title="Average" value={average} capacity={capacity} />
+    <Tile title="Minimum" value={minimum} capacity={capacity} />
+</Row>
+<Row>
+    <Chart html={heatmap} />
+</Row>
+<Row>
+    <Chart html={chart} />
+</Row>
+<Accordion title="Stage Left">This is some text about area 1</Accordion>
+<Accordion title="Stage Right">This is some text about area 1</Accordion>

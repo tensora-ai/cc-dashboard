@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_b4e8255be050ddd038d92c31e606f504 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_b4e8255be050ddd038d92c31e606f504" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_b4e8255be050ddd038d92c31e606f504 = L.map(
+                "map_b4e8255be050ddd038d92c31e606f504",
+                {
+                    center: [53.9354, 10.3176],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 18,
+                    zoomControl: false,
+                    preferCanvas: false,
+                    scrollWheelZoom: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_c331a352a18db51be9ae3ea25927bde3 = L.tileLayer(
+                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                {"attribution": "ESRI", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            );
+        
+    
+            tile_layer_c331a352a18db51be9ae3ea25927bde3.addTo(map_b4e8255be050ddd038d92c31e606f504);
+        
+    
+            var marker_f26234336aa3eedaeb468d17ad27c649 = L.marker(
+                [53.9354, 10.3177],
+                {}
+            ).addTo(map_b4e8255be050ddd038d92c31e606f504);
+        
+    
+            var div_icon_c9a160cf41059554f2d6c8161344e311 = L.divIcon({"className": "empty", "html": "\n    \u003cdiv style=\"\n        font-size: 15px;\n        color: white;\n        background-color: #524ED2;\n        border-radius: 18px;\n        width: 56px;\n        height: 36px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border: 2px solid white;\n    \"\u003e0\u003c/div\u003e\n"});
+            marker_f26234336aa3eedaeb468d17ad27c649.setIcon(div_icon_c9a160cf41059554f2d6c8161344e311);
+        
+    
+            var marker_88fcec5655f0f6772912fa6f657c1421 = L.marker(
+                [53.9354, 10.3175],
+                {}
+            ).addTo(map_b4e8255be050ddd038d92c31e606f504);
+        
+    
+            var div_icon_856c0155a9b047e330ce1f45f688bd01 = L.divIcon({"className": "empty", "html": "\n    \u003cdiv style=\"\n        font-size: 15px;\n        color: white;\n        background-color: #524ED2;\n        border-radius: 18px;\n        width: 56px;\n        height: 36px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border: 2px solid white;\n    \"\u003e4\u003c/div\u003e\n"});
+            marker_88fcec5655f0f6772912fa6f657c1421.setIcon(div_icon_856c0155a9b047e330ce1f45f688bd01);
+        
+</script>
+</html>

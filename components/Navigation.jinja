@@ -1,0 +1,23 @@
+{#def title, project, key, date #}
+
+<nav>
+    <ul>
+        <li>
+            <img src="/static/tensora_icon.svg" width="36" />
+        </li>
+        <li>
+            <h3 style="margin-bottom: 0">{{ title }}</h3>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}" hx-trigger="change"
+                hx-get="/content/{{ project }}/{{ key }}" hx-target="#main" hx-include="this" />
+        </li>
+        <li>
+            <button aria-busy="true">
+                Live
+            </button>
+        </li>
+    </ul>
+</nav>
