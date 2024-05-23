@@ -1,14 +1,20 @@
+import os
+from dotenv import load_dotenv
 import datetime
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+
 # import azure.storage.blob
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
 from viz import create_map, line_chart, heatmap_chart
+
 # from perspective import compute_homography
 from utils import get_capacity, prepare_data, prepare_data2
+
+load_dotenv()
 
 catalog = Catalog()
 catalog.add_folder("components")
@@ -18,7 +24,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 cosmos_client = CosmosClient.from_connection_string(
-    "AccountEndpoint=https://tensora-cosmos.documents.azure.com:443/;AccountKey=3HhuxX00FrreK88mEiCmLNgSypzbVLKwKiBA5mgb0sUQcvaIV2YCDKNBdqEIe0TbsZpBEHg2cuQbACDbtIa2ow==;"
+    os.environ["COSMOS_CONNECTION_STRING"]
 )
 cosmos_db = cosmos_client.get_database_client("crowd-counting")
 fcn_db = cosmos_db.get_container_client("predictions-nuernberg")
@@ -33,19 +39,24 @@ projects = cosmos_db.get_container_client("projects")
 # blob = blob_client.get_container_client("cc-images-nuernberg")
 
 
-@app.get("/dashboard/{id}/{key}", response_class=HTMLResponse)
-async def dashboard(id: str, key: str):
+@app.get("/", response_class=HTMLResponse)
+async def login():
+    return catalog.render("Login")
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(project: str, key: str):
     try:
-        project = projects.read_item(id, id)
-        if key != project["key"]:
+        p = projects.read_item(project, project)
+        if key != p["key"]:
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
     return catalog.render(
         "Layout",
-        title=project["name"],
-        project=project["id"],
-        key=project["key"],
+        title=p["name"],
+        project=p["id"],
+        key=p["key"],
         date=datetime.date.today().strftime("%Y-%m-%d"),
     )
 

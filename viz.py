@@ -25,18 +25,6 @@ def icon(text: str):
 """
 
 
-def create_heatmap():
-    data = [
-        [1, 1, 2, 2, 1, 1, 1, 1],
-        [1, 1, 2, 3, 2, 1, 1, 1],
-        [1, 3, 3, 3, 2, 2, 1, 1],
-    ]
-    fig = px.imshow(data, color_continuous_scale="Viridis")
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
-    return pio.to_html(fig, full_html=False, default_height="200px")
-
-
 def create_map(counts, project):
     # Create a Folium map centered on Germany with ESRI satellite tiles
     m = folium.Map(
@@ -136,8 +124,8 @@ def heatmap_chart():
         alt.Chart(data)
         .mark_rect()
         .encode(
-            x=alt.X("x:O", axis=None),
-            y=alt.Y("y:O", axis=None),
+            x=alt.X("x:O"),
+            y=alt.Y("y:O"),
             color=alt.Color("z:Q", scale=alt.Scale(scheme="viridis")),
         )
     )

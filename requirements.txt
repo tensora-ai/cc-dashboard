@@ -6,3 +6,4 @@ azure-cosmos
 altair
 vl-convert-python
 folium
+python-dotenv
