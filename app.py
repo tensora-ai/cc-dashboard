@@ -45,23 +45,23 @@ async def login():
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(project: str, key: str):
+async def dashboard(id: str, key: str):
     try:
-        p = projects.read_item(project, project)
-        if key != p["key"]:
+        project = projects.read_item(id, id)
+        if key != project["key"]:
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
     return catalog.render(
         "Layout",
-        title=p["name"],
-        project=p["id"],
-        key=p["key"],
+        title=project["name"],
+        project=project["id"],
+        key=project["key"],
         date=datetime.date.today().strftime("%Y-%m-%d"),
     )
 
 
-@app.get("/content/{id}/{key}", response_class=HTMLResponse)
+@app.get("/content", response_class=HTMLResponse)
 async def content(id: str, key: str, date: str | None = None):
     if date is None:
         date = datetime.date.today().strftime("%Y-%m-%d")

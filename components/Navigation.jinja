@@ -10,9 +10,11 @@
         </li>
     </ul>
     <ul>
+        <li><input style="display: none" type="text" name="id" value="{{ project }}"></li>
+        <li><input style="display: none" type="text" name="key" value="{{ key }}"></li>
         <li>
             <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}" hx-trigger="change"
-                hx-get="/content/{{ project }}/{{ key }}" hx-target="#main" hx-include="this" />
+                hx-get="/content" hx-target="#main" hx-include="[name='date'], [name='id'], [name='key']" />
         </li>
         <li>
             <button aria-busy="true">
