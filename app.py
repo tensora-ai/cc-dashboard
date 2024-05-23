@@ -2,13 +2,13 @@ import datetime
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-import azure.storage.blob
+# import azure.storage.blob
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
 import numpy as np
 
 from viz import create_map, line_chart, heatmap_chart
-from perspective import compute_homography
+# from perspective import compute_homography
 from utils import get_capacity, prepare_data, prepare_data2
 
 catalog = Catalog()
@@ -27,11 +27,11 @@ kalkberg_db = cosmos_db.get_container_client("predictions-bad-segeberg")
 projects = cosmos_db.get_container_client("projects")
 
 
-blob_client = azure.storage.blob.BlobServiceClient(
-    account_url="https://tensorastorage.blob.core.windows.net/",
-    credential="OTC+4iQJevvteUOTaTO+N7GYRJkuUNyEieCOGIdRwno9h7BByPMKBi5uRG50DgYICDoyqFn0ZraE+AStUQb4MQ==",
-)
-blob = blob_client.get_container_client("cc-images-nuernberg")
+# blob_client = azure.storage.blob.BlobServiceClient(
+#     account_url="https://tensorastorage.blob.core.windows.net/",
+#     credential="OTC+4iQJevvteUOTaTO+N7GYRJkuUNyEieCOGIdRwno9h7BByPMKBi5uRG50DgYICDoyqFn0ZraE+AStUQb4MQ==",
+# )
+# blob = blob_client.get_container_client("cc-images-nuernberg")
 
 
 @app.get("/dashboard/{id}/{key}", response_class=HTMLResponse)
@@ -88,17 +88,17 @@ async def content(id: str, key: str, date: str | None = None):
     )
 
 
-@app.get("/utils/homography")
-async def homography(
-    tl_x: int,
-    tl_y: int,
-    tr_x: int,
-    tr_y: int,
-    br_x: int,
-    br_y: int,
-    bl_x: int,
-    bl_y: int,
-):
-    src_points = np.array([[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]])
-    H = compute_homography(src_points, square_size=2.0, px_per_m=10)
-    return {"homography": H.round(4).tolist()}
+# @app.get("/utils/homography")
+# async def homography(
+#     tl_x: int,
+#     tl_y: int,
+#     tr_x: int,
+#     tr_y: int,
+#     br_x: int,
+#     br_y: int,
+#     bl_x: int,
+#     bl_y: int,
+# ):
+#     src_points = np.array([[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]])
+#     H = compute_homography(src_points, square_size=2.0, px_per_m=10)
+#     return {"homography": H.round(4).tolist()}

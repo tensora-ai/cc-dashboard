@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/ef3ac21e-bc8a-4281-848b-3e98aab8f89e/resourceGroups/rg-tensora-count/providers/Microsoft.Web/sites/tensora-count",
+    "appService.deploySubpath": "."
+}

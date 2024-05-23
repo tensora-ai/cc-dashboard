@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+jinjax
+pandas
+azure-cosmos
+altair
+vl-convert
+folium

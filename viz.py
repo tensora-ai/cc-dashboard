@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import vl_convert as vlc
-import plotly.express as px
-import plotly.io as pio
+# import plotly.express as px
+# import plotly.io as pio
 
 
 def icon(text: str):
