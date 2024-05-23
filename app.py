@@ -5,7 +5,6 @@ from fastapi.staticfiles import StaticFiles
 # import azure.storage.blob
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
-import numpy as np
 
 from viz import create_map, line_chart, heatmap_chart
 # from perspective import compute_homography
