@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import datetime
+from datetime import datetime as dt
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -46,6 +46,7 @@ async def login():
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(id: str, key: str):
+    date = dt.now().strftime("%Y-%m-%d")
     try:
         project = projects.read_item(id, id)
         if key != project["key"]:
@@ -57,14 +58,16 @@ async def dashboard(id: str, key: str):
         title=project["name"],
         project=project["id"],
         key=project["key"],
-        date=datetime.date.today().strftime("%Y-%m-%d"),
+        date=date,
     )
 
 
 @app.get("/content", response_class=HTMLResponse)
-async def content(id: str, key: str, date: str | None = None):
-    if date is None:
-        date = datetime.date.today().strftime("%Y-%m-%d")
+async def content(id: str, key: str, date: str, time: str | None = None):
+    # if date == dt.now().strftime("%Y-%m-%d") and time == "":
+    #     return HTMLResponse("", 204)
+    if time is None or time == "":
+        time = "23:59:59"
     try:
         project = projects.read_item(id, id)
         if key != project["key"]:
@@ -74,7 +77,7 @@ async def content(id: str, key: str, date: str | None = None):
     db = fcn_db if id == "fcn" else kalkberg_db
     items = list(
         db.query_items(
-            query=f"SELECT * FROM c WHERE STARTSWITH(c.timestamp, '{date}')",
+            query=f"SELECT * FROM c WHERE STARTSWITH(c.timestamp, '{date}') AND c.timestamp < '{date}T{time}'",
             enable_cross_partition_query=True,
         )
     )
