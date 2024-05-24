@@ -84,7 +84,11 @@ def line_chart(df: pd.DataFrame, project: dict):
     chart = (
         alt.Chart(df, width=960, height=240)
         .mark_area(interpolate="basis")
-        .encode(x="timestamp:T", y="count_standard_mask:Q", color="position:N")
+        .encode(
+            x=alt.X("timestamp:T", axis=alt.Axis(format="%H:%M", tickCount=10)),
+            y="count_standard_mask:Q",
+            color="position:N",
+        )
     )
     # rendering charts as SVGs minimizes UI flashes on refresh
     svg = vlc.vegalite_to_svg(chart.to_json())

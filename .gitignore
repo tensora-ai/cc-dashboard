@@ -1,4 +1,4 @@
-/__*
+__*
 *.ipynb
 .env
-/static/map.html
+static/map.html
