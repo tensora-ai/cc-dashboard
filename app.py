@@ -1,11 +1,12 @@
 import os
+import json
 from dotenv import load_dotenv
 from datetime import datetime as dt
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-# import azure.storage.blob
+import azure.storage.blob
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
@@ -32,14 +33,16 @@ kalkberg_db = cosmos_db.get_container_client("predictions-bad-segeberg")
 projects = cosmos_db.get_container_client("projects")
 
 
-# blob_client = azure.storage.blob.BlobServiceClient(
-#     account_url="https://tensorastorage.blob.core.windows.net/",
-#     credential="OTC+4iQJevvteUOTaTO+N7GYRJkuUNyEieCOGIdRwno9h7BByPMKBi5uRG50DgYICDoyqFn0ZraE+AStUQb4MQ==",
-# )
-# blob = blob_client.get_container_client("cc-images-nuernberg")
+blob_client = azure.storage.blob.BlobServiceClient(
+    account_url=os.environ["STORAGE_URL"],
+    credential=os.environ["STORAGE_CREDENTIAL"],
+)
+container_client = blob_client.get_container_client("cc-images-bad-segeberg")
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get(
+    "/",
+)
 async def login():
     return catalog.render("Login")
 
@@ -87,7 +90,11 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     chart = line_chart(df.drop("total", axis="columns"), project)
     capacity = get_capacity(project)
     create_map(df.iloc[-1].to_dict(), project)  # map gets saved as a HTML file
-    heatmap = heatmap_chart()  # dummy function
+    # get the latest blobs from the container_client
+    blobs = container_client.list_blob_names(name_starts_with="stage_right")
+    blobs = [x for x in sorted(list(blobs), reverse=True) if "transformed_density" in x]
+    blob = container_client.get_blob_client(blobs[0])
+    heatmap = heatmap_chart(json.loads(blob.download_blob().content_as_text()))
     return catalog.render(
         project["name"].replace(" ", ""),
         title=project["name"],

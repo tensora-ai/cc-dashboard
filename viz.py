@@ -101,34 +101,29 @@ def array_to_heatmap_data(array: np.ndarray):
     return data
 
 
-def heatmap_chart():
-    width, height = 60, 20
+def heatmap_chart(data: list, x_range=(-13, 54), y_range=(0, 45)):
+    df = pd.DataFrame(data, columns=["x", "y", "z"])
+    df = df[(df.x > x_range[0]) & (df.x < x_range[1])]
+    df = df[(df.y > y_range[0]) & (df.y < y_range[1])]
+    df.x = df.x.astype(int)
+    df.y = df.y.astype(int)
+    df.z = df.z.astype(int)
 
-    # Create the x and y coordinates
-    x, y = np.meshgrid(np.linspace(-5, 5, width), np.linspace(-5, 5, height))
-
-    # Set the mean and standard deviation of the distribution
-    mean_x, mean_y = 0, 0
-    std_dev_x, std_dev_y = 1, 1
-
-    # Calculate the 2D normal distribution
-    z = (1 / (2 * np.pi * std_dev_x * std_dev_y)) * np.exp(
-        -(
-            (x - mean_x) ** 2 / (2 * std_dev_x**2)
-            + (y - mean_y) ** 2 / (2 * std_dev_y**2)
-        )
-    )
-    data = array_to_heatmap_data(z)
-
-    chart = (
-        alt.Chart(data)
+    base = (
+        alt.Chart(df)
         .mark_rect()
         .encode(
-            x=alt.X("x:O"),
-            y=alt.Y("y:O"),
-            color=alt.Color("z:Q", scale=alt.Scale(scheme="viridis")),
+            x=alt.X("x:O", axis=None),
+            y=alt.Y("y:O", axis=None, scale=alt.Scale(reverse=True)),
         )
     )
+    heatmap = base.mark_rect().encode(
+        alt.Color("z:Q", legend=None).scale(scheme="viridis")
+    )
+    text = base.mark_text(baseline="middle").encode(
+        alt.Text("z:Q"), color=alt.value("black")
+    )
+    chart = heatmap + text
     svg = vlc.vegalite_to_svg(chart.to_json())
     svg = re.sub(r' width="\d+"', 'width="100%"', svg)
     svg = re.sub(r' height="\d+"', "", svg)
