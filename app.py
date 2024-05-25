@@ -40,9 +40,7 @@ blob_client = azure.storage.blob.BlobServiceClient(
 container_client = blob_client.get_container_client("cc-images-bad-segeberg")
 
 
-@app.get(
-    "/",
-)
+@app.get("/", response_class=HTMLResponse)
 async def login():
     return catalog.render("Login")
 
