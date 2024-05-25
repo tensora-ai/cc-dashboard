@@ -111,7 +111,7 @@ def heatmap_chart(data: list, x_range=(-13, 54), y_range=(0, 45)):
     df = df[(df.y > y_range[0]) & (df.y < y_range[1])]
     df.x = df.x.astype(int)
     df.y = df.y.astype(int)
-    df.z = df.z.astype(int)
+    df.z = df.z.round().astype(int)
 
     base = (
         alt.Chart(df)
