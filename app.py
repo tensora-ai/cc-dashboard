@@ -13,7 +13,7 @@ from jinjax import Catalog
 from viz import create_map, line_chart, heatmap_chart
 
 # from perspective import compute_homography
-from utils import get_capacity, prepare_data, prepare_data2
+from utils import get_capacity, prepare_data, prepare_data2, get_latest_entry
 
 load_dotenv()
 
@@ -89,22 +89,26 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     capacity = get_capacity(project)
     create_map(df.iloc[-1].to_dict(), project)  # map gets saved as a HTML file
     # get the latest blobs from the container_client
-    blobs = container_client.list_blob_names(name_starts_with="stage_right")
-    blobs = [x for x in sorted(list(blobs), reverse=True) if "transformed_density" in x]
-    blob = container_client.get_blob_client(blobs[0])
+    fname_right = get_latest_entry(items, "stage_right", "standard")
+    fname_left = get_latest_entry(items, "stage_left", "standard")
+    img_left = container_client.get_blob_client(f"{fname_left}.jpg").url
+    img_right = container_client.get_blob_client(f"{fname_right}.jpg").url
+    blob = container_client.get_blob_client(f"{fname_right}_transformed_density.json")
     heatmap = heatmap_chart(
-        json.loads(blob.download_blob().content_as_text()), blob_name=blobs[0]
+        json.loads(blob.download_blob().content_as_text()), blob_name=fname_right
     )
     return catalog.render(
         project["name"].replace(" ", ""),
         title=project["name"],
         chart=chart,
         heatmap=heatmap,
-        current=int(df["total"][-1]),
+        current=int(df["total"].to_list()[-1]),
         maximum=int(df["total"].max()),
         average=int(df["total"].mean()),
         minimum=int(df["total"].min()),
         capacity=capacity,
+        img_left=img_left,
+        img_right=img_right,
     )
 
 

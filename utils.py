@@ -34,7 +34,7 @@ def prepare_data(items: list[dict], date: str):
     df["total"] = df.sum(axis=1)
     df = df.sort_values(by="timestamp")
     for col in df.columns:
-        df[col] = df[col].ewm(span=5, adjust=False).mean()
+        df[col] = df[col].ewm(span=3, adjust=False).mean()
     return df
 
 
@@ -54,7 +54,7 @@ def prepare_data2(items: list[dict], date: str):
     df["total"] = df.sum(axis=1)
     df = df.sort_values(by="timestamp")
     for col in df.columns:
-        df[col] = df[col].ewm(span=5, adjust=False).mean()
+        df[col] = df[col].ewm(span=3, adjust=False).mean()
     return df
 
 
@@ -66,3 +66,10 @@ def get_capacity(project: dict):
             if project["areas"][k]["capacity"] > 0
         ]
     )
+
+
+def get_latest_entry(items, camera_id: str, position: str):
+    df = pd.DataFrame(items)
+    df = df[(df.camera_id == camera_id) & (df.position == position)]
+    df = df.sort_values("timestamp")
+    return df["id"].to_list()[-1]

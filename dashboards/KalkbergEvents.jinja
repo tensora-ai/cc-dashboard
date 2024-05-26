@@ -1,4 +1,4 @@
-{#def title, chart, heatmap, current, maximum, average, minimum, capacity #}
+{#def title, chart, heatmap, current, maximum, average, minimum, capacity, img_left, img_right #}
 
 <Row>
     <Chart html={heatmap} />
@@ -12,13 +12,11 @@
 <Row>
     <Chart html={chart} />
 </Row>
-{# <div class="grid">
+<div class="grid">
     <article>
-        <img src="http://172.22.0.198/axis-cgi/jpg/image.cgi" />
+        <img src="{{ img_left }}" />
     </article>
     <article>
-        <img src="http://172.22.0.200/axis-cgi/jpg/image.cgi" />
+        <img src="{{ img_right }}" />
     </article>
-</div> #}
-<Accordion title="Stage Left">This is some text about area 1</Accordion>
-<Accordion title="Stage Right">This is some text about area 1</Accordion>
+</div>
