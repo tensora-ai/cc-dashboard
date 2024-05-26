@@ -1,11 +1,5 @@
 {#def title, chart, heatmap, current, maximum, average, minimum, capacity #}
 
-{# <Row>
-    <Tile title="Current" value={current} capacity={capacity} />
-    <Tile title="Maximum" value={maximum} capacity={capacity} />
-    <Tile title="Average" value={average} capacity={capacity} />
-    <Tile title="Minimum" value={minimum} capacity={capacity} />
-</Row> #}
 <Row>
     <Chart html={heatmap} />
     <div>
@@ -18,5 +12,13 @@
 <Row>
     <Chart html={chart} />
 </Row>
+{# <div class="grid">
+    <article>
+        <img src="http://172.22.0.198/axis-cgi/jpg/image.cgi" />
+    </article>
+    <article>
+        <img src="http://172.22.0.200/axis-cgi/jpg/image.cgi" />
+    </article>
+</div> #}
 <Accordion title="Stage Left">This is some text about area 1</Accordion>
 <Accordion title="Stage Right">This is some text about area 1</Accordion>

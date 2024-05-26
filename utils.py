@@ -33,6 +33,8 @@ def prepare_data(items: list[dict], date: str):
     df = df.fillna(value=0)
     df["total"] = df.sum(axis=1)
     df = df.sort_values(by="timestamp")
+    for col in df.columns:
+        df[col] = df[col].ewm(span=5, adjust=False).mean()
     return df
 
 
@@ -51,6 +53,8 @@ def prepare_data2(items: list[dict], date: str):
     df = df.fillna(value=0)
     df["total"] = df.sum(axis=1)
     df = df.sort_values(by="timestamp")
+    for col in df.columns:
+        df[col] = df[col].ewm(span=5, adjust=False).mean()
     return df
 
 

@@ -92,13 +92,15 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     blobs = container_client.list_blob_names(name_starts_with="stage_right")
     blobs = [x for x in sorted(list(blobs), reverse=True) if "transformed_density" in x]
     blob = container_client.get_blob_client(blobs[0])
-    heatmap = heatmap_chart(json.loads(blob.download_blob().content_as_text()))
+    heatmap = heatmap_chart(
+        json.loads(blob.download_blob().content_as_text()), blob_name=blobs[0]
+    )
     return catalog.render(
         project["name"].replace(" ", ""),
         title=project["name"],
         chart=chart,
         heatmap=heatmap,
-        current=int(df["total"].to_list()[-1]),
+        current=int(df["total"][-1]),
         maximum=int(df["total"].max()),
         average=int(df["total"].mean()),
         minimum=int(df["total"].min()),
