@@ -16,7 +16,7 @@
     <header class="container" style="padding: 0">
         <Navigation title={title} project={project} key={key} date={date} />
     </header>
-    <main id="main" class="container" hx-get="/content" hx-trigger="load, every 20s"
+    <main id="main" class="container" hx-get="/content" hx-trigger="load, every 30s"
         hx-include="[name='id'], [name='key'], [name='date'], [name='time']">
         <div style="display: flex; justify-content: center; align-items: center;">
             <span aria-busy="true"></span>
