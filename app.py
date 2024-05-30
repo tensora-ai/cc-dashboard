@@ -93,10 +93,15 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     fname_left = get_latest_entry(items, "stage_left", "standard")
     img_left = container_client.get_blob_client(f"{fname_left}.jpg").url
     img_right = container_client.get_blob_client(f"{fname_right}.jpg").url
-    blob = container_client.get_blob_client(f"{fname_right}_transformed_density.json")
-    heatmap = heatmap_chart(
-        json.loads(blob.download_blob().content_as_text()), blob_name=fname_right
-    )
+    try:
+        blob = container_client.get_blob_client(
+            f"{fname_right}_transformed_density.json"
+        )
+        heatmap = heatmap_chart(
+            json.loads(blob.download_blob().content_as_text()), blob_name=fname_right
+        )
+    except:
+        heatmap = ""
     return catalog.render(
         project["name"].replace(" ", ""),
         title=project["name"],
