@@ -57,6 +57,25 @@ def prepare_data2(items: list[dict], date: str):
         df[col] = df[col].ewm(span=3, adjust=False).mean()
     return df
 
+def prepare_data3(items: list[dict], date: str):
+    date = datetime.strptime(date, "%Y-%m-%d").date()
+    df = pd.DataFrame(items)
+    df = df[["id", "timestamp", "camera_id", "total_count"]]
+    # df["camera_id"] = df["camera_id"].str.replace("stage_", "")
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df[df["timestamp"].dt.date == date]
+    df = df.sort_values(by="timestamp")
+    df = df.pivot(index="timestamp", columns="camera_id", values="total_count")
+    df = df.ffill()
+    df = df.fillna(value=0)
+    df = df.resample("1min").ffill()
+    df = df.fillna(value=0)
+    df["total"] = df.sum(axis=1)
+    df = df.sort_values(by="timestamp")
+    for col in df.columns:
+        df[col] = df[col].ewm(span=3, adjust=False).mean()
+    return df
+
 
 def get_capacity(project: dict):
     return sum(

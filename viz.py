@@ -135,3 +135,34 @@ def heatmap_chart(data: list, blob_name: str, x_range=(-13, 54), y_range=(0, 44)
     svg = re.sub(r' width="\d+"', 'width="100%"', svg)
     svg = re.sub(r' height="\d+"', "", svg)
     return svg
+
+def heatmap_chart2(data: list, blob_name: str, x_range=(-13, 54), y_range=(0, 44)):
+    title = blob_name.replace("stage_left_standard_", "").replace(
+        "_density.json", ""
+    )
+    df = pd.DataFrame(data, columns=["x", "y", "z"])
+    #df = df[(df.x > x_range[0]) & (df.x < x_range[1])]
+    #df = df[(df.y > y_range[0]) & (df.y < y_range[1])]
+    df.x = df.x.astype(int)
+    df.y = df.y.astype(int)
+    df.z = df.z.round().astype(int)
+
+    base = (
+        alt.Chart(df)
+        .mark_rect()
+        .encode(
+            x=alt.X("x:O", axis=None),
+            y=alt.Y("y:O", axis=None, scale=alt.Scale(reverse=True)),
+        )
+    )
+    heatmap = base.mark_rect().encode(
+        alt.Color("z:Q", legend=None).scale(scheme="viridis")
+    )
+    text = base.mark_text(baseline="middle").encode(
+        alt.Text("z:Q"), color=alt.value("black")
+    )
+    chart = (heatmap + text).properties(title=title)
+    svg = vlc.vegalite_to_svg(chart.to_json())
+    svg = re.sub(r' width="\d+"', 'width="100%"', svg)
+    svg = re.sub(r' height="\d+"', "", svg)
+    return svg

@@ -1,0 +1,22 @@
+{#def title, chart, heatmap, current, maximum, average, minimum, capacity, img_left, img_right #}
+<Row>
+    <div class="grid">
+        <Tile title="Current" value={current} capacity={capacity} />
+        <Tile title="Maximum" value={maximum} capacity={capacity} />
+        <Tile title="Average" value={average} capacity={capacity} />
+        <Tile title="Minimum" value={minimum} capacity={capacity} />
+    </div>
+</Row>
+<Row>
+    <Chart html={chart} />
+</Row>
+<Row>
+    <div class="grid">
+        <article style="display:flex;align-items:center">
+            <img src="{{ img_left }}" />
+        </article>
+        <article>
+            <img src="{{ img_right }}" />
+        </article>
+    </div>
+</Row>
