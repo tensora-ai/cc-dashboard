@@ -104,7 +104,7 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     # get the latest blobs from the container_client
     # fname_right = get_latest_entry(items, "stage_right", "standard")
     fname_left = get_latest_entry(items, "stage_left", "standard")
-    img_left = container_client.get_blob_client(f"{fname_left}.jpg").url
+    img_left = container_client.get_blob_client(f"{fname_left}_small.jpg").url
     img_heatmap = container_client.get_blob_client(f"{fname_left}_heatmap.jpg").url
     # img_right = container_client.get_blob_client(f"{fname_right}.jpg").url
     try:
