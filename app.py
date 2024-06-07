@@ -102,32 +102,25 @@ async def content(id: str, key: str, date: str, time: str | None = None):
     capacity = get_capacity(project)
     # create_map(df.iloc[-1].to_dict(), project)  # map gets saved as a HTML file
     # get the latest blobs from the container_client
-    # fname_right = get_latest_entry(items, "stage_right", "standard")
     fname_left = get_latest_entry(items, "stage_left", "standard")
+    fname_right = get_latest_entry(items, "stage_right", "standard")
     img_left = container_client.get_blob_client(f"{fname_left}_small.jpg").url
-    img_heatmap = container_client.get_blob_client(f"{fname_left}_heatmap.jpg").url
-    # img_right = container_client.get_blob_client(f"{fname_right}.jpg").url
-    try:
-        blob = container_client.get_blob_client(
-            f"{fname_left}_density.json"
-        )
-        heatmap = heatmap_chart(
-            json.loads(blob.download_blob().content_as_text()), blob_name=fname_left
-        )
-    except:
-        heatmap = ""
+    heatmap_left = container_client.get_blob_client(f"{fname_left}_heatmap.jpg").url
+    img_right = container_client.get_blob_client(f"{fname_right}_small.jpg").url
+    heatmap_right = container_client.get_blob_client(f"{fname_right}_heatmap.jpg").url
     return catalog.render(
         project["name"].replace(" ", ""),
         title=project["name"],
         chart=chart,
-        heatmap=heatmap,
         current=int(df["total"].round().to_list()[-1]),
         maximum=int(df["total"].max()),
         average=int(df["total"].mean()),
         minimum=int(df["total"].min()),
         capacity=capacity,
         img_left=img_left,
-        img_right=img_heatmap,
+        img_right=img_right,
+        heatmap_left=heatmap_left,
+        heatmap_right=heatmap_right,
     )
 
 

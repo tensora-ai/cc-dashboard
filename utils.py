@@ -60,18 +60,20 @@ def prepare_data2(items: list[dict], date: str):
 def prepare_data3(items: list[dict], date: str):
     date = datetime.strptime(date, "%Y-%m-%d").date()
     df = pd.DataFrame(items)
-    df = df[["id", "timestamp", "camera_id", "total_count"]]
+    df = df[["id", "timestamp", "camera_id", "count_standard_mask"]]
     # df["camera_id"] = df["camera_id"].str.replace("stage_", "")
     df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["timestamp"] = df["timestamp"] + pd.Timedelta(hours=2)
     df = df[df["timestamp"].dt.date == date]
     df = df.sort_values(by="timestamp")
-    df = df.pivot(index="timestamp", columns="camera_id", values="total_count")
+    df = df.pivot(index="timestamp", columns="camera_id", values="count_standard_mask")
     df = df.ffill()
     df = df.fillna(value=0)
     df = df.resample("1min").ffill()
     df = df.fillna(value=0)
     df["total"] = df.sum(axis=1)
     df = df.sort_values(by="timestamp")
+    print(df.head())
     for col in df.columns:
         df[col] = df[col].ewm(span=3, adjust=False).mean()
     return df
