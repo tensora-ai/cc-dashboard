@@ -1,4 +1,4 @@
-{#def title, project, key, date #}
+{#def project, area, date, time #}
 
 <nav>
     <ul>
@@ -6,26 +6,30 @@
             <img src="/static/tensora_icon.svg" width="36" />
         </li>
         <li>
-            <h3 style="margin-bottom: 0">{{ title }}</h3>
+            <h3 style="margin-bottom: 0">{{ project["name"] }}</h3>
         </li>
     </ul>
     <ul>
-        <li><input style="display: none" type="text" name="id" value="{{ project }}"></li>
-        <li><input style="display: none" type="text" name="key" value="{{ key }}"></li>
+        <li><input style="display: none" type="text" name="id" value="{{ project['id'] }}"></li>
+        <li><input style="display: none" type="text" name="key" value="{{ project['key'] }}"></li>
         <li>
-            <input id="timepicker" type="time" name="time" aria-label="Time" value="" hx-trigger="change delay:500ms"
+            <select name="area" aria-label="Areas" hx-trigger="change" hx-get="/content" hx-target="#main"
+                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']">
+                <option {% if area == "all" %}selected{% endif %} value="all">All Areas</option>
+                {% for a in project["areas"] %}
+                <option {% if area == a %}selected{% endif %} value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+            </select>
+        </li>
+        <li>
+            <input id="timepicker" type="time" name="time" aria-label="Time" value="{{ time }}" hx-trigger="change delay:300ms"
                 hx-get="/content" hx-target="#main"
-                hx-include="[name='id'], [name='key'], [name='date'], [name='time']" />
+                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']" />
         </li>
         <li>
-            <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}"
-                hx-trigger="change delay:500ms" hx-get="/content" hx-target="#main"
-                hx-include="[name='id'], [name='key'], [name='date'], [name='time']" />
+            <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}" hx-trigger="change delay:300ms"
+                hx-get="/content" hx-target="#main"
+                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']" />
         </li>
-        {# <li>
-            <button aria-busy="true">
-                Live
-            </button>
-        </li> #}
     </ul>
 </nav>

@@ -1,19 +1,16 @@
 import os
-import json
 from dotenv import load_dotenv
 from datetime import datetime as dt
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-import azure.storage.blob
+from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
-from viz import create_map, line_chart, heatmap_chart
-
-# from perspective import compute_homography
-from utils import get_capacity, prepare_data, prepare_data2, get_latest_entry, prepare_data3
+from viz import line_chart
+from utils import prep_data
 
 load_dotenv()
 
@@ -24,21 +21,17 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-cosmos_client = CosmosClient.from_connection_string(
+db = CosmosClient.from_connection_string(
     os.environ["COSMOS_CONNECTION_STRING"]
-)
-cosmos_db = cosmos_client.get_database_client("crowd-counting")
-fcn_db = cosmos_db.get_container_client("predictions-nuernberg")
-kalkberg_db = cosmos_db.get_container_client("predictions-bad-segeberg")
-northside_db = cosmos_db.get_container_client("predictions-northside")
-projects = cosmos_db.get_container_client("projects")
+).get_database_client("tensora-count")
+db_projects = db.get_container_client("projects")
+db_predictions = db.get_container_client("predictions")
 
-
-blob_client = azure.storage.blob.BlobServiceClient(
-    account_url=os.environ["STORAGE_URL"],
-    credential=os.environ["STORAGE_CREDENTIAL"],
+blob_client = BlobServiceClient.from_connection_string(
+    os.environ["STORAGE_CONNECTION_STRING"]
 )
-container_client = blob_client.get_container_client("cc-images-northside")
+blob_images = blob_client.get_container_client("images")
+blob_predictions = blob_client.get_container_client("predictions")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -47,94 +40,60 @@ async def login():
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(id: str, key: str):
-    date = dt.now().strftime("%Y-%m-%d")
+async def dashboard(id: str, key: str, area: str = "all", date: str = dt.now().strftime("%Y-%m-%d"), time: str = ""):
     try:
-        project = projects.read_item(id, id)
+        project = db_projects.read_item(id, id)
         if key != project["key"]:
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
+    
     return catalog.render(
         "Layout",
-        title=project["name"],
-        project=project["id"],
-        key=project["key"],
+        project=project,
+        area=area,
         date=date,
+        time=time
     )
 
-
 @app.get("/content", response_class=HTMLResponse)
-async def content(id: str, key: str, date: str, time: str | None = None):
-    # if date == dt.now().strftime("%Y-%m-%d") and time == "":
-    #     return HTMLResponse("", 204)
-    if time is None or time == "":
+async def content(id: str, key: str, area: str, date: str, time: str):
+    start = dt.now()
+    if not time:
         time = "23:59:59"
     try:
-        project = projects.read_item(id, id)
+        project = db_projects.read_item(id, id)
         if key != project["key"]:
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
-    db = fcn_db if id == "fcn" else kalkberg_db
-    if id == "fcn":
-        db = fcn_db
-    elif id == "kalkberg":
-        db = kalkberg_db
-    elif id == "northside":
-        db = northside_db
-    items = list(
-        db.query_items(
-            query=f"SELECT * FROM c WHERE STARTSWITH(c.timestamp, '{date}') AND c.timestamp < '{date}T{time}'",
-            enable_cross_partition_query=True,
-        )
-    )
+    
+    if not area or area == "all":
+        areas = list(project["areas"].keys())
+    else:
+        areas = [area]
+    
+    q = f"""
+    SELECT * FROM c
+    WHERE STARTSWITH(c.timestamp, '{date}')
+    AND c.timestamp <= '{date}T{time}'
+    AND c.project = '{project["id"]}'
+    ORDER BY c.timestamp
+    """
+
+    items = list(db_predictions.query_items(q, partition_key=project["id"]))
+
     if len(items) == 0:
-        return catalog.render("Empty")
-    if id == "fcn":
-        df = prepare_data(items, date)
-    elif id == "kalkberg":
-        df = prepare_data2(items, date)
-    elif id == "northside":
-        df = prepare_data3(items, date)
-    print(len(df))
-    chart = line_chart(df.drop("total", axis="columns"), project)
-    capacity = get_capacity(project)
-    # create_map(df.iloc[-1].to_dict(), project)  # map gets saved as a HTML file
-    # get the latest blobs from the container_client
-    fname_left = get_latest_entry(items, "stage_left", "standard")
-    fname_right = get_latest_entry(items, "stage_right", "standard")
-    img_left = container_client.get_blob_client(f"{fname_left}_small.jpg").url
-    heatmap_left = container_client.get_blob_client(f"{fname_left}_heatmap.jpg").url
-    img_right = container_client.get_blob_client(f"{fname_right}_small.jpg").url
-    heatmap_right = container_client.get_blob_client(f"{fname_right}_heatmap.jpg").url
+        return "No data available for the selected date and time."
+
+    df = prep_data(items, areas)
+    chart = line_chart(df.drop("total"), project)
+
+    print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
+
     return catalog.render(
         project["name"].replace(" ", ""),
-        title=project["name"],
+        project=project,
         chart=chart,
-        current=int(df["total"].round().to_list()[-1]),
-        maximum=int(df["total"].max()),
-        average=int(df["total"].mean()),
-        minimum=int(df["total"].min()),
-        capacity=capacity,
-        img_left=img_left,
-        img_right=img_right,
-        heatmap_left=heatmap_left,
-        heatmap_right=heatmap_right,
+        data=df
     )
-
-
-# @app.get("/utils/homography")
-# async def homography(
-#     tl_x: int,
-#     tl_y: int,
-#     tr_x: int,
-#     tr_y: int,
-#     br_x: int,
-#     br_y: int,
-#     bl_x: int,
-#     bl_y: int,
-# ):
-#     src_points = np.array([[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]])
-#     H = compute_homography(src_points, square_size=2.0, px_per_m=10)
-#     return {"homography": H.round(4).tolist()}

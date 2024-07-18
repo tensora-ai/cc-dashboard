@@ -1,81 +1,18 @@
-import pandas as pd
+import polars as pl
 from datetime import datetime
 
-
-# def prepare_data2(items: list[dict], date: str):
-#     date = datetime.strptime(date, "%Y-%m-%d").date()
-#     df = pd.DataFrame(items)
-#     df = df[["timestamp", "position", "count_standard_mask"]]
-#     df["timestamp"] = pd.to_datetime(df["timestamp"])
-#     df = df[df["timestamp"].dt.date == date]
-#     df = df.sort_values(by="timestamp")
-#     df = df.pivot(index="timestamp", columns="position", values="count_standard_mask")
-#     df = df.ffill()
-#     df = df.fillna(value=0)
-#     df = df.resample("1T").ffill()
-#     df = df.fillna(value=0)
-#     df["total"] = df.sum(axis=1)
-#     df.reset_index(inplace=True)
-#     return df
-
-
-def prepare_data(items: list[dict], date: str):
-    date = datetime.strptime(date, "%Y-%m-%d").date()
-    df = pd.DataFrame(items)
-    df = df[["id", "timestamp", "position", "count_standard_mask"]]
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df[df["timestamp"].dt.date == date]
-    df = df.sort_values(by="timestamp")
-    df = df.pivot(index="timestamp", columns="position", values="count_standard_mask")
-    df = df.ffill()
-    df = df.fillna(value=0)
-    df = df.resample("1T").ffill()
-    df = df.fillna(value=0)
-    df["total"] = df.sum(axis=1)
-    df = df.sort_values(by="timestamp")
-    for col in df.columns:
-        df[col] = df[col].ewm(span=3, adjust=False).mean()
-    return df
-
-
-def prepare_data2(items: list[dict], date: str):
-    date = datetime.strptime(date, "%Y-%m-%d").date()
-    df = pd.DataFrame(items)
-    df = df[["id", "timestamp", "camera_id", "count_standard_mask"]]
-    df["camera_id"] = df["camera_id"].str.replace("stage_", "")
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df[df["timestamp"].dt.date == date]
-    df = df.sort_values(by="timestamp")
-    df = df.pivot(index="timestamp", columns="camera_id", values="count_standard_mask")
-    df = df.ffill()
-    df = df.fillna(value=0)
-    df = df.resample("1T").ffill()
-    df = df.fillna(value=0)
-    df["total"] = df.sum(axis=1)
-    df = df.sort_values(by="timestamp")
-    for col in df.columns:
-        df[col] = df[col].ewm(span=3, adjust=False).mean()
-    return df
-
-def prepare_data3(items: list[dict], date: str):
-    date = datetime.strptime(date, "%Y-%m-%d").date()
-    df = pd.DataFrame(items)
-    df = df[["id", "timestamp", "camera_id", "count_standard_mask"]]
-    # df["camera_id"] = df["camera_id"].str.replace("stage_", "")
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df["timestamp"] = df["timestamp"] + pd.Timedelta(hours=2)
-    df = df[df["timestamp"].dt.date == date]
-    df = df.sort_values(by="timestamp")
-    df = df.pivot(index="timestamp", columns="camera_id", values="count_standard_mask")
-    df = df.ffill()
-    df = df.fillna(value=0)
-    df = df.resample("1min").ffill()
-    df = df.fillna(value=0)
-    df["total"] = df.sum(axis=1)
-    df = df.sort_values(by="timestamp")
-    print(df.head())
-    for col in df.columns:
-        df[col] = df[col].ewm(span=3, adjust=False).mean()
+def prep_data(items: list[dict], areas: list[str]):
+    schema = {"timestamp": pl.String, "camera": pl.String, "counts": pl.Struct({k:pl.Int64 for k in areas})}
+    df = pl.DataFrame(items, schema=schema).unnest("counts")
+    df = df.fill_null(0)
+    df = df.with_columns(pl.col("timestamp").cast(pl.Datetime).dt.truncate("1m"))
+    # df = df.with_columns([pl.col(x).forward_fill() for x in areas])
+    df = df.group_by(["timestamp", "camera"]).mean()
+    df = df.group_by(["timestamp"]).sum().drop("camera")
+    df = df.sort("timestamp")
+    df = df.fill_nan(0)
+    df = df.with_columns([pl.col(x).ewm_mean(span=3, ignore_nulls=True).cast(pl.Int64) for x in areas])
+    df = df.with_columns(pl.sum_horizontal(areas).alias("total"))
     return df
 
 

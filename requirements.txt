@@ -1,6 +1,7 @@
 fastapi
-uvicorn
-jinjax
+jinjax==0.37
+polars
+pyarrow
 pandas
 azure-cosmos
 azure-storage-blob
@@ -9,3 +10,4 @@ altair
 vl-convert-python
 folium
 python-dotenv
+tqdm

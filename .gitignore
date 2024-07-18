@@ -2,3 +2,4 @@ __*
 *.ipynb
 .env
 static/map.html
+.venv

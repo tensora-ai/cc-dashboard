@@ -1,7 +1,7 @@
 import re
 import folium
 import numpy as np
-import pandas as pd
+import polars as pl
 import altair as alt
 import vl_convert as vlc
 # import plotly.express as px
@@ -77,17 +77,15 @@ def create_map(counts, project):
 #     chart.show_dots = False
 #     return chart.render(is_unicode=True)
 
-
-def line_chart(df: pd.DataFrame, project: dict):
-    df = df.reset_index()
-    df = df.melt(["timestamp"], var_name="position", value_name="count_standard_mask")
+def line_chart(df: pl.DataFrame, project: dict):
+    df = df.melt(id_vars=["timestamp"], variable_name="area", value_name="count")
     chart = (
-        alt.Chart(df, width=960, height=240)
+        alt.Chart(df.to_pandas(), width=960, height=240)
         .mark_area(interpolate="basis")
         .encode(
             x=alt.X("timestamp:T", axis=alt.Axis(format="%H:%M", tickCount=10)),
-            y="count_standard_mask:Q",
-            color="position:N",
+            y="count:Q",
+            color="area:N",
         )
     )
     # rendering charts as SVGs minimizes UI flashes on refresh
