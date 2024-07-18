@@ -10,7 +10,7 @@ from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
 from viz import line_chart
-from utils import prep_data
+from utils import get_latest_entry, prep_data
 
 load_dotenv()
 
@@ -72,6 +72,15 @@ async def content(id: str, key: str, area: str, date: str, time: str):
         areas = list(project["areas"].keys())
     else:
         areas = [area]
+
+    area2camera = {}
+    for cam_name, cam_data in project["cameras"].items():
+        for pos_name, pos_data in cam_data["position_settings"].items():
+            for area_name, area_data in pos_data["area_metadata"].items():
+                if area_name in area2camera:
+                    area2camera[area_name].append(cam_name)
+                else:
+                    area2camera[area_name] = [cam_name]
     
     q = f"""
     SELECT * FROM c
@@ -89,11 +98,20 @@ async def content(id: str, key: str, area: str, date: str, time: str):
     df = prep_data(items, areas)
     chart = line_chart(df.drop("total"), project)
 
-    print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
+    # print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
+
+    files: dict[str, list[str]] = {}
+    for area in areas:
+        files[project["areas"][area]["name"]] = []
+        for camera in area2camera[area]:
+            files[project["areas"][area]["name"]].append(get_latest_entry(items, camera, "standard"))
+
+    print(files)
 
     return catalog.render(
         project["name"].replace(" ", ""),
         project=project,
         chart=chart,
-        data=df
+        data=df,
+        files=files
     )

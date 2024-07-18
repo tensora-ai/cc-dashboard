@@ -26,8 +26,9 @@ def get_capacity(project: dict):
     )
 
 
-def get_latest_entry(items, camera_id: str, position: str):
-    df = pd.DataFrame(items)
-    df = df[(df.camera_id == camera_id) & (df.position == position)]
-    df = df.sort_values("timestamp")
+def get_latest_entry(items, camera: str, position: str):
+    schema = {"id": pl.String, "timestamp": pl.String, "camera": pl.String, "position": pl.String}
+    df = pl.DataFrame(items, schema=schema)
+    df = df.filter((df["camera"] == camera) & (df["position"] == position))
+    df = df.sort("timestamp")
     return df["id"].to_list()[-1]

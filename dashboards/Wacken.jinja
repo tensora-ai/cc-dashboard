@@ -1,0 +1,28 @@
+{#def title, chart, heatmap, current, maximum, average, minimum, capacity, img_left, img_right #}
+
+<Row>
+    <Chart html={heatmap} />
+    <div>
+        <Tile title="Current" value={current} capacity={capacity} />
+        <Tile title="Maximum" value={maximum} capacity={capacity} />
+        <Tile title="Average" value={average} capacity={capacity} />
+        <Tile title="Minimum" value={minimum} capacity={capacity} />
+    </div>
+</Row>
+<Row>
+    <Chart html={chart} />
+</Row>
+<div class="grid">
+    <article>
+        {% set parts_left = img_left.split('_') %}
+        {% set dt_left = parts_left[-2] + ' ' + parts_left[-1].split('.')[0] %}
+        <img src="{{ img_left }}" />
+        <p>{{ dt_left }}</p>
+    </article>
+    <article>
+        {% set parts_right = img_right.split('_') %}
+        {% set dt_right = parts_right[-2] + ' ' + parts_right[-1].split('.')[0] %}
+        <img src="{{ img_right }}" />
+        <p>{{ dt_right }}</p>
+    </article>
+</div>

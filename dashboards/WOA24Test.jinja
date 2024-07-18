@@ -1,4 +1,4 @@
-{#def project, data, chart #}
+{#def project, data, chart, files #}
 
 <Row>
     <Tile title="Current" value={data['total'][-1]} />
@@ -9,3 +9,12 @@
 <Row>
     <Chart html={chart} />
 </Row>
+
+{% for area_name, ids in files.items() %}
+<h2>{{ area_name }}</h2>
+<Row>
+    {% for id in ids %}
+    <Photo src={"https://tensoracountstorage.blob.core.windows.net/images/" + id + "_small.jpg" } />
+    {% endfor %}
+</Row>
+{% endfor %}
