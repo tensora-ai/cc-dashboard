@@ -6,8 +6,7 @@ pandas
 azure-cosmos
 azure-storage-blob
 azure-identity
-altair
-vl-convert-python
+plotly
 folium
 python-dotenv
 tqdm

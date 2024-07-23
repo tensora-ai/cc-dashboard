@@ -6,7 +6,6 @@ def prep_data(items: list[dict], areas: list[str]):
     df = pl.DataFrame(items, schema=schema).unnest("counts")
     df = df.fill_null(0)
     df = df.with_columns(pl.col("timestamp").cast(pl.Datetime).dt.truncate("1m"))
-    # df = df.with_columns([pl.col(x).forward_fill() for x in areas])
     df = df.group_by(["timestamp", "camera"]).mean()
     df = df.group_by(["timestamp"]).sum().drop("camera")
     df = df.sort("timestamp")
@@ -32,3 +31,8 @@ def get_latest_entry(items, camera: str, position: str):
     df = df.filter((df["camera"] == camera) & (df["position"] == position))
     df = df.sort("timestamp")
     return df["id"].to_list()[-1]
+
+def filter_coords(coords: list, crop: list[int]):
+    coords = [x for x in coords if x[0] >= crop[0] and x[0] <= crop[2]]
+    coords = [x for x in coords if x[1] >= crop[1] and x[1] <= crop[3]]
+    return coords

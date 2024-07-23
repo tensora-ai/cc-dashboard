@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from datetime import datetime as dt
 from fastapi import FastAPI
@@ -9,8 +10,8 @@ from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
-from viz import line_chart
-from utils import get_latest_entry, prep_data
+from viz import line_chart, heatmap_chart
+from utils import get_latest_entry, prep_data, filter_coords
 
 load_dotenv()
 
@@ -100,18 +101,29 @@ async def content(id: str, key: str, area: str, date: str, time: str):
 
     # print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
 
-    files: dict[str, list[str]] = {}
+    images: dict[str, list[str]] = {} # mapping areas to most recent prediction IDs for each camera
+    densities: dict[str, str] = {} # mapping areas to heatmap charts in HTML
     for area in areas:
-        files[project["areas"][area]["name"]] = []
+        a = project["areas"][area]["name"]
+        images[a] = []
+        merged_coords = []
         for camera in area2camera[area]:
-            files[project["areas"][area]["name"]].append(get_latest_entry(items, camera, "standard"))
-
-    print(files)
-
+            id = get_latest_entry(items, camera, "standard")
+            images[a].append(id)
+            try:
+                f = blob_predictions.download_blob(f"{id}_transformed_density.json")
+                coords = json.loads(f.readall())
+                merged_coords += filter_coords(coords, project["cameras"][camera]["position_settings"]["standard"]["area_metadata"][area]["heatmap_crop"])
+            except:
+                print(f"{id}_transformed_density.json not found")
+        # densities[a] = heatmap_chart(coords)
+        densities[a] = heatmap_chart(merged_coords)
+        
     return catalog.render(
         project["name"].replace(" ", ""),
         project=project,
         chart=chart,
         data=df,
-        files=files
+        images=images,
+        densities=densities
     )
