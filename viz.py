@@ -47,35 +47,43 @@ def create_map(counts, project):
     # Save the map to an HTML file
     m.save("static/map.html")
 
-def line_chart(df: pl.DataFrame, project: dict):
+def line_chart(df: pl.DataFrame, areas: set[str]):
     df = df.melt(id_vars=["timestamp"], variable_name="area", value_name="count")
-    df_pandas = df.to_pandas()
+    df = df.filter(pl.col("area").is_in(areas))
     
     fig = px.area(
-        df_pandas,
+        df.to_pandas(),
         x="timestamp",
         y="count",
         color="area",
-        line_shape="spline",  # This is similar to interpolate="basis" in Altair
-        # width=960,
-        height=240
+        line_shape="spline",
+        height=200
     )
     
-    # Customize the x-axis
     fig.update_xaxes(
         tickformat="%H:%M",
-        nticks=10
+        nticks=10,
+        title_text=None,  # Hide x-axis label
+        tickfont=dict(color='#808080'),  # Medium gray for tick labels
+        gridcolor='#808080'  # Medium gray for grid lines
     )
     
-    # Adjust layout to reduce padding and remove legend title
-    fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
-        legend_title_text=''
+    fig.update_yaxes(
+        title_text=None,
+        tickfont=dict(color='#808080'),  # Medium gray for tick labels
+        gridcolor='#808080'  # Medium gray for grid lines
     )
 
-    # Convert the figure to HTML
-    html = pio.to_html(fig, full_html=False)
-    return html
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
+        legend_title_text='',
+        paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+        plot_bgcolor='rgba(0,0,0,0)',   # Transparent plot area
+        legend=dict(
+            font=dict(color='#808080')  # Medium gray for legend text
+        )
+    )
+    return pio.to_html(fig, full_html=False, include_plotlyjs=False)
 
 def heatmap_chart(data: list[list]):
     df = pd.DataFrame(data, columns=["x", "y", "z"]).astype(int)
@@ -89,12 +97,27 @@ def heatmap_chart(data: list[list]):
         # text_auto=True
     )
 
-    # Adjust layout to reduce padding
+    fig.update_xaxes(
+        title_text=None  # Hide x-axis label
+    )
+    
+    # Hide y-axis label, set tick color, and grid color
+    fig.update_yaxes(
+        title_text=None
+    )
+
+    # Adjust layout to reduce padding, make background transparent, and set font color
     fig.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
+        paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+        plot_bgcolor='rgba(0,0,0,0)',   # Transparent plot area
+        font=dict(color='#808080'),     # Medium gray font color
         # xaxis=dict(showticklabels=False),
         # yaxis=dict(showticklabels=False),
     )
+
+    # Update colorbar to have medium gray text
+    fig.update_coloraxes(colorbar=dict(tickfont=dict(color='#808080')))
 
     # Convert the figure to HTML
     html = pio.to_html(fig, full_html=False, include_plotlyjs=False)

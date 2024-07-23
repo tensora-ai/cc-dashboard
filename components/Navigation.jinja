@@ -12,24 +12,32 @@
     <ul>
         <li><input style="display: none" type="text" name="id" value="{{ project['id'] }}"></li>
         <li><input style="display: none" type="text" name="key" value="{{ project['key'] }}"></li>
-        <li>
-            <select name="area" aria-label="Areas" hx-trigger="change" hx-get="/content" hx-target="#main"
-                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']">
-                <option {% if area == "all" %}selected{% endif %} value="all">All Areas</option>
-                {% for a in project["areas"] %}
-                <option {% if area == a %}selected{% endif %} value="{{ a }}">{{ a }}</option>
-                {% endfor %}
-            </select>
+        <li style="padding-top:22px">
+            <details class="dropdown" id="area-dropdown" style="margin-bottom: var(--)">
+                <summary style="height:34px">Select Areas...</summary>
+                <ul>
+                    {% for a in project["areas"] %}
+                    <li>
+                        <label>
+                            <input type="checkbox" name="area" value="{{ a }}" {% if not area or a in area %}checked{%
+                                endif %} hx-trigger="change" hx-get="/content" hx-target="#main"
+                                hx-include="[name='id'], [name='key'], [name='area']:checked, [name='date'], [name='time']" />
+                            {{ a }}
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
         </li>
         <li>
-            <input id="timepicker" type="time" name="time" aria-label="Time" value="{{ time }}" hx-trigger="change delay:300ms"
-                hx-get="/content" hx-target="#main"
-                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']" />
+            <input id="timepicker" type="time" name="time" aria-label="Time" value="{{ time }}"
+                hx-trigger="change delay:300ms" hx-get="/content" hx-target="#main"
+                hx-include="[name='id'], [name='key'], [name='area']:checked, [name='date'], [name='time']" />
         </li>
         <li>
-            <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}" hx-trigger="change delay:300ms"
-                hx-get="/content" hx-target="#main"
-                hx-include="[name='id'], [name='key'], [name='area'], [name='date'], [name='time']" />
+            <input id="datepicker" type="date" name="date" aria-label="Date" value="{{ date }}"
+                hx-trigger="change delay:300ms" hx-get="/content" hx-target="#main"
+                hx-include="[name='id'], [name='key'], [name='area']:checked, [name='date'], [name='time']" />
         </li>
     </ul>
 </nav>

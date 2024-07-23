@@ -2,7 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from datetime import datetime as dt
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -58,10 +58,10 @@ async def dashboard(id: str, key: str, area: str = "all", date: str = dt.now().s
     )
 
 @app.get("/content", response_class=HTMLResponse)
-async def content(id: str, key: str, area: str, date: str, time: str):
+async def content(id: str, key: str, area: list[str] = Query(None), date: str = Query(...), time: str = Query(...)):
     start = dt.now()
     if not time:
-        time = "23:59:59"
+        time = "23:59:59" # dt.now().strftime("%H:%M:%S")
     try:
         project = db_projects.read_item(id, id)
         if key != project["key"]:
@@ -69,10 +69,10 @@ async def content(id: str, key: str, area: str, date: str, time: str):
     except:
         return "Invalid project and/or key."
     
-    if not area or area == "all":
+    if not area:
         areas = list(project["areas"].keys())
     else:
-        areas = [area]
+        areas = area
 
     area2camera = {}
     for cam_name, cam_data in project["cameras"].items():
@@ -88,7 +88,8 @@ async def content(id: str, key: str, area: str, date: str, time: str):
     WHERE STARTSWITH(c.timestamp, '{date}')
     AND c.timestamp <= '{date}T{time}'
     AND c.project = '{project["id"]}'
-    ORDER BY c.timestamp
+    ORDER BY c.timestamp DESC
+    OFFSET 0 LIMIT 1000
     """
 
     items = list(db_predictions.query_items(q, partition_key=project["id"]))
@@ -97,13 +98,15 @@ async def content(id: str, key: str, area: str, date: str, time: str):
         return "No data available for the selected date and time."
 
     df = prep_data(items, areas)
-    chart = line_chart(df.drop("total"), project)
-
-    # print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
+    available_areas = set([k for item in items for k in item["counts"]])
+    print(available_areas)
+    chart = line_chart(df.drop("total"), available_areas)
 
     images: dict[str, list[str]] = {} # mapping areas to most recent prediction IDs for each camera
     densities: dict[str, str] = {} # mapping areas to heatmap charts in HTML
     for area in areas:
+        if area not in available_areas:
+            continue
         a = project["areas"][area]["name"]
         images[a] = []
         merged_coords = []
@@ -116,11 +119,12 @@ async def content(id: str, key: str, area: str, date: str, time: str):
                 merged_coords += filter_coords(coords, project["cameras"][camera]["position_settings"]["standard"]["area_metadata"][area]["heatmap_crop"])
             except:
                 print(f"{id}_transformed_density.json not found")
-        # densities[a] = heatmap_chart(coords)
         densities[a] = heatmap_chart(merged_coords)
+
+    print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
         
     return catalog.render(
-        project["name"].replace(" ", ""),
+        project["name"].replace(" ", ""), # Maps project name to name of the template file
         project=project,
         chart=chart,
         data=df,

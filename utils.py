@@ -10,7 +10,7 @@ def prep_data(items: list[dict], areas: list[str]):
     df = df.group_by(["timestamp"]).sum().drop("camera")
     df = df.sort("timestamp")
     df = df.fill_nan(0)
-    df = df.with_columns([pl.col(x).ewm_mean(span=3, ignore_nulls=True).cast(pl.Int64) for x in areas])
+    df = df.with_columns([pl.col(x).ewm_mean(span=4, ignore_nulls=True).cast(pl.Int64) for x in areas])
     df = df.with_columns(pl.sum_horizontal(areas).alias("total"))
     return df
 
