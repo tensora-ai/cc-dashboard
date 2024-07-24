@@ -1,5 +1,5 @@
+import numpy as np
 import polars as pl
-from datetime import datetime
 
 def prep_data(items: list[dict], areas: list[str]):
     schema = {"timestamp": pl.String, "camera": pl.String, "counts": pl.Struct({k:pl.Int64 for k in areas})}
@@ -37,8 +37,6 @@ def filter_coords(coords: list, crop: list[int]):
     coords = [x for x in coords if x[1] >= crop[1] and x[1] <= crop[3]]
     return coords
 
-import numpy as np
-
 def convert_to_array(items: list[list], crop: tuple | None = None):
     if crop:
         l, t, r, b = crop
@@ -53,7 +51,7 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
     height = (b - t) * 2
     
     # Create an empty array filled with zeros
-    array = np.zeros((height, width), dtype=np.uint8)
+    array = np.zeros((height, width))
     
     # Fill the array with intensity values
     for x, y, val in items:
@@ -61,8 +59,8 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
             # Convert coordinates to array indices
             j = int((x - l) * 2)
             i = int((y - t) * 2)
-            if 0 <= i < height and 0 <= j < width:  # Ensure indices are within array bounds
-                array[height - i - 1, j] = min(int(round(val * 10)), 255)  # Scale to 0-255 range
+            if 0 <= i < height and 0 <= j < width:
+                array[height - i - 1, j] = round(val, 1)
     
     return array
 

@@ -1,7 +1,5 @@
-import re
 import folium
 import numpy as np
-import pandas as pd
 import polars as pl
 import plotly.io as pio
 import plotly.express as px
