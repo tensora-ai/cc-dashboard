@@ -1,5 +1,6 @@
 import re
 import folium
+import numpy as np
 import pandas as pd
 import polars as pl
 import plotly.io as pio
@@ -83,42 +84,25 @@ def line_chart(df: pl.DataFrame, areas: set[str]):
             font=dict(color='#808080')  # Medium gray for legend text
         )
     )
-    return pio.to_html(fig, full_html=False, include_plotlyjs=False)
+    return pio.to_html(fig, full_html=False, include_plotlyjs=False, config={'displayModeBar': False})
 
-def heatmap_chart(data: list[list]):
-    df = pd.DataFrame(data, columns=["x", "y", "z"]).astype(int)
-    df = df.drop_duplicates(["x", "y"], keep="first")
-    
+def heatmap_chart(array, crop):
+    l, t, r, b = crop
     fig = px.imshow(
-        df.pivot(index="y", columns="x", values="z"),
+        array,
+        x=np.linspace(l, r-0.5, array.shape[1]),
+        y=np.linspace(b-0.5, t, array.shape[0]),
         color_continuous_scale="viridis",
-        origin="upper",
-        labels={"color": ""},
-        # text_auto=True
+        origin="lower",
+        aspect="equal",
+        labels={"color": "density"}
     )
-
-    fig.update_xaxes(
-        title_text=None  # Hide x-axis label
-    )
-    
-    # Hide y-axis label, set tick color, and grid color
-    fig.update_yaxes(
-        title_text=None
-    )
-
-    # Adjust layout to reduce padding, make background transparent, and set font color
     fig.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
         paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
-        plot_bgcolor='rgba(0,0,0,0)',   # Transparent plot area
-        font=dict(color='#808080'),     # Medium gray font color
-        # xaxis=dict(showticklabels=False),
-        # yaxis=dict(showticklabels=False),
+        plot_bgcolor='rgba(0,0,0,0)',  # Transparent plot area
+        font=dict(color='#808080'),  # Medium gray font color
+        xaxis=dict(title=None, showticklabels=False, showgrid=False),
+        yaxis=dict(title=None, showticklabels=False, showgrid=False)
     )
-
-    # Update colorbar to have medium gray text
-    fig.update_coloraxes(colorbar=dict(tickfont=dict(color='#808080')))
-
-    # Convert the figure to HTML
-    html = pio.to_html(fig, full_html=False, include_plotlyjs=False)
-    return html
+    return pio.to_html(fig, full_html=False, include_plotlyjs=False, config={'displayModeBar': False})

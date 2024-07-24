@@ -11,7 +11,9 @@ from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
 from viz import line_chart, heatmap_chart
-from utils import get_latest_entry, prep_data, filter_coords
+from utils import get_latest_entry, prep_data, filter_coords, convert_to_array, merge_cam_crops
+
+MAX_ROWS = 1000
 
 load_dotenv()
 
@@ -61,7 +63,7 @@ async def dashboard(id: str, key: str, area: str = "all", date: str = dt.now().s
 async def content(id: str, key: str, area: list[str] = Query(None), date: str = Query(...), time: str = Query(...)):
     start = dt.now()
     if not time:
-        time = "23:59:59" # dt.now().strftime("%H:%M:%S")
+        time = "23:59:59"
     try:
         project = db_projects.read_item(id, id)
         if key != project["key"]:
@@ -89,7 +91,7 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
     AND c.timestamp <= '{date}T{time}'
     AND c.project = '{project["id"]}'
     ORDER BY c.timestamp DESC
-    OFFSET 0 LIMIT 1000
+    OFFSET 0 LIMIT {MAX_ROWS}
     """
 
     items = list(db_predictions.query_items(q, partition_key=project["id"]))
@@ -99,7 +101,6 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
 
     df = prep_data(items, areas)
     available_areas = set([k for item in items for k in item["counts"]])
-    print(available_areas)
     chart = line_chart(df.drop("total"), available_areas)
 
     images: dict[str, list[str]] = {} # mapping areas to most recent prediction IDs for each camera
@@ -110,16 +111,22 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
         a = project["areas"][area]["name"]
         images[a] = []
         merged_coords = []
+        cam_crops = []
         for camera in area2camera[area]:
             id = get_latest_entry(items, camera, "standard")
             images[a].append(id)
             try:
                 f = blob_predictions.download_blob(f"{id}_transformed_density.json")
                 coords = json.loads(f.readall())
-                merged_coords += filter_coords(coords, project["cameras"][camera]["position_settings"]["standard"]["area_metadata"][area]["heatmap_crop"])
+                pos_settings = project["cameras"][camera]["position_settings"]
+                cam_crop = pos_settings["standard"]["area_metadata"][area]["heatmap_crop"]
+                cam_crops.append(cam_crop)
+                merged_coords += filter_coords(coords, cam_crop)
             except:
                 print(f"{id}_transformed_density.json not found")
-        densities[a] = heatmap_chart(merged_coords)
+        area_crop = merge_cam_crops(cam_crops)
+        img = convert_to_array(merged_coords, area_crop)
+        densities[a] = heatmap_chart(img, area_crop)
 
     print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
         

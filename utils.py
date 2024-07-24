@@ -36,3 +36,40 @@ def filter_coords(coords: list, crop: list[int]):
     coords = [x for x in coords if x[0] >= crop[0] and x[0] <= crop[2]]
     coords = [x for x in coords if x[1] >= crop[1] and x[1] <= crop[3]]
     return coords
+
+import numpy as np
+
+def convert_to_array(items: list[list], crop: tuple | None = None):
+    if crop:
+        l, t, r, b = crop
+    else:
+        l = int(min(x[0] for x in items))
+        t = int(min(x[1] for x in items))
+        r = int(max(x[0] for x in items)) + 1
+        b = int(max(x[1] for x in items)) + 1
+    
+    # Calculate the dimensions of the array
+    width = (r - l) * 2
+    height = (b - t) * 2
+    
+    # Create an empty array filled with zeros
+    array = np.zeros((height, width), dtype=np.uint8)
+    
+    # Fill the array with intensity values
+    for x, y, val in items:
+        if l <= x < r and t <= y < b:  # Check if the point is within the crop area
+            # Convert coordinates to array indices
+            j = int((x - l) * 2)
+            i = int((y - t) * 2)
+            if 0 <= i < height and 0 <= j < width:  # Ensure indices are within array bounds
+                array[height - i - 1, j] = min(int(round(val * 10)), 255)  # Scale to 0-255 range
+    
+    return array
+
+def merge_cam_crops(cam_crops: list):
+    arr = np.array(cam_crops)
+    l = int(arr[:,0].min())
+    t = int(arr[:,1].min())
+    r = int(arr[:,2].max())
+    b = int(arr[:,3].max())
+    return l, t, r, b
