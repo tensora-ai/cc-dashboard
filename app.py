@@ -1,17 +1,23 @@
-import os
 import json
-from dotenv import load_dotenv
+import os
 from datetime import datetime as dt
+
+from azure.cosmos import CosmosClient
+from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-
-from azure.storage.blob import BlobServiceClient
-from azure.cosmos import CosmosClient
 from jinjax import Catalog
 
-from viz import line_chart, heatmap_chart
-from utils import get_latest_entry, prep_data, filter_coords, convert_to_array, merge_cam_crops
+from utils import (
+    convert_to_array,
+    filter_coords,
+    get_latest_entry,
+    merge_cam_crops,
+    prep_data,
+)
+from viz import heatmap_chart, line_chart
 
 MAX_ROWS = 1000
 
@@ -43,24 +49,31 @@ async def login():
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(id: str, key: str, area: str = "all", date: str = dt.now().strftime("%Y-%m-%d"), time: str = ""):
+async def dashboard(
+    id: str,
+    key: str,
+    area: str = "all",
+    date: str = dt.now().strftime("%Y-%m-%d"),
+    time: str = "",
+):
     try:
         project = db_projects.read_item(id, id)
         if key != project["key"]:
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
-    
-    return catalog.render(
-        "Layout",
-        project=project,
-        area=area,
-        date=date,
-        time=time
-    )
+
+    return catalog.render("Layout", project=project, area=area, date=date, time=time)
+
 
 @app.get("/content", response_class=HTMLResponse)
-async def content(id: str, key: str, area: list[str] = Query(None), date: str = Query(...), time: str = Query(...)):
+async def content(
+    id: str,
+    key: str,
+    area: list[str] = Query(None),
+    date: str = Query(...),
+    time: str = Query(...),
+):
     start = dt.now()
     if not time:
         time = "23:59:59"
@@ -70,7 +83,7 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
             raise ValueError("Invalid key")
     except:
         return "Invalid project and/or key."
-    
+
     if not area:
         areas = list(project["areas"].keys())
     else:
@@ -84,7 +97,7 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
                     area2camera[area_name].append(cam_name)
                 else:
                     area2camera[area_name] = [cam_name]
-    
+
     q = f"""
     SELECT * FROM c
     WHERE STARTSWITH(c.timestamp, '{date}')
@@ -103,8 +116,10 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
     available_areas = set([k for item in items for k in item["counts"]])
     chart = line_chart(df.drop("total"), available_areas)
 
-    images: dict[str, list[str]] = {} # mapping areas to most recent prediction IDs for each camera
-    densities: dict[str, str] = {} # mapping areas to heatmap charts in HTML
+    images: dict[str, list[str]] = (
+        {}
+    )  # mapping areas to most recent prediction IDs for each camera
+    densities: dict[str, str] = {}  # mapping areas to heatmap charts in HTML
     for area in areas:
         if area not in available_areas:
             continue
@@ -119,7 +134,9 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
                 f = blob_predictions.download_blob(f"{id}_transformed_density.json")
                 coords = json.loads(f.readall())
                 pos_settings = project["cameras"][camera]["position_settings"]
-                cam_crop = pos_settings["standard"]["area_metadata"][area]["heatmap_crop"]
+                cam_crop = pos_settings["standard"]["area_metadata"][area][
+                    "heatmap_crop"
+                ]
                 cam_crops.append(cam_crop)
                 merged_coords += filter_coords(coords, cam_crop)
             except:
@@ -129,12 +146,14 @@ async def content(id: str, key: str, area: list[str] = Query(None), date: str = 
         densities[a] = heatmap_chart(img, area_crop)
 
     print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
-        
+
     return catalog.render(
-        project["name"].replace(" ", ""), # Maps project name to name of the template file
+        project["name"].replace(
+            " ", ""
+        ),  # Maps project name to name of the template file
         project=project,
         chart=chart,
         data=df,
         images=images,
-        densities=densities
+        densities=densities,
     )
