@@ -75,7 +75,7 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
             j = int((x - l) * 2)
             i = int((y - t) * 2)
             if 0 <= i < height and 0 <= j < width:
-                array[height - i - 1, j] = min(round(val, 1), 2.5)
+                array[height - i - 1, j] = min(round(val, 1), 2.8)
 
     return array
 
