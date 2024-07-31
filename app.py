@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime as dt
+from datetime import timedelta
 
 from azure.cosmos import CosmosClient
 from azure.storage.blob import BlobServiceClient
@@ -77,6 +78,19 @@ async def content(
     start = dt.now()
     if not time:
         time = "23:59:59"
+    elif len(time.split(":")) == 2:
+        time += ":00"
+        # Combine date and time into a single datetime object
+        original_datetime = dt.strptime(f"{date}T{time}", "%Y-%m-%dT%H:%M:%S")
+
+        # Subtract 2 hours
+        adjusted_datetime = original_datetime - timedelta(hours=2)
+
+        # Format adjusted datetime back to date and time strings
+        adjusted_date = adjusted_datetime.strftime("%Y-%m-%d")
+        adjusted_time = adjusted_datetime.strftime("%H:%M:%S")
+        time = adjusted_time
+        date = adjusted_date
     try:
         project = db_projects.read_item(id, id)
         if key != project["key"]:
