@@ -3,18 +3,21 @@ import polars as pl
 
 
 def prep_data(items: list[dict], areas: list[str]):
-    schema = {
-        "timestamp": pl.String,
-        "camera": pl.String,
-        "counts": pl.Struct({k: pl.Int64 for k in areas}),
-    }
-    df = pl.DataFrame(items, schema=schema).unnest("counts")
-    df = df.fill_null(0)
+    data = []
+    for el in items:
+        for area in el["counts"]:
+            if area != "total":
+                data.append({"timestamp": el["timestamp"], "camera": el["camera"], "area": area, "count": el["counts"][area]})
+    df = pl.DataFrame(data)
     df = df.with_columns(pl.col("timestamp").cast(pl.Datetime).dt.truncate("1m"))
-    df = df.group_by(["timestamp", "camera"]).mean()
-    df = df.group_by(["timestamp"]).sum().drop("camera")
     df = df.sort("timestamp")
-    df = df.fill_nan(0)
+    df = df.pivot("camera", index=["timestamp"], values="count", aggregate_function="mean")
+    df = df.select(pl.all().forward_fill(10)) # fill max 10 min
+    df = df.select(pl.all().backward_fill()) # in case first row has nulls
+    df = df.with_columns(
+        [pl.sum_horizontal(pl.col("^" + x + ".*$")).alias(x) for x in areas]
+    )
+    df = df.select(["timestamp"] + areas)
     df = df.with_columns(
         [pl.col(x).ewm_mean(span=4, ignore_nulls=True).cast(pl.Int64) for x in areas]
     )
