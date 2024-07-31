@@ -97,6 +97,8 @@ def heatmap_chart(array, crop):
         origin="lower",
         aspect="equal",
         labels={"color": "density"},
+        zmin=0,
+        zmax=3,
     )
     fig.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
