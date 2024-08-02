@@ -10,4 +10,3 @@ plotly
 folium
 python-dotenv
 tqdm
-random
