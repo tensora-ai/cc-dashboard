@@ -96,11 +96,12 @@ def heatmap_chart(array, crop):
         color_continuous_scale="viridis",
         origin="lower",
         aspect="equal",
-        labels={"color": "density"},
+        labels={"color": "density in sqm"},
         zmin=0,
-        zmax=5,
+        zmax=7,
     )
     fig.update_layout(
+        # title="Test",
         margin=dict(l=0, r=0, t=0, b=0),  # Minimal margins
         paper_bgcolor="rgba(0,0,0,0)",  # Transparent background
         plot_bgcolor="rgba(0,0,0,0)",  # Transparent plot area

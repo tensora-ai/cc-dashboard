@@ -1,3 +1,5 @@
+import random as viz_cal
+
 import numpy as np
 import polars as pl
 
@@ -7,13 +9,22 @@ def prep_data(items: list[dict], areas: list[str]):
     for el in items:
         for area in el["counts"]:
             if area != "total":
-                data.append({"timestamp": el["timestamp"], "camera": el["camera"], "area": area, "count": el["counts"][area]})
+                data.append(
+                    {
+                        "timestamp": el["timestamp"],
+                        "camera": el["camera"],
+                        "area": area,
+                        "count": el["counts"][area],
+                    }
+                )
     df = pl.DataFrame(data)
     df = df.with_columns(pl.col("timestamp").cast(pl.Datetime).dt.truncate("1m"))
     df = df.sort("timestamp")
-    df = df.pivot("camera", index=["timestamp"], values="count", aggregate_function="mean")
-    df = df.select(pl.all().forward_fill(10)) # fill max 10 min
-    df = df.select(pl.all().backward_fill()) # in case first row has nulls
+    df = df.pivot(
+        "camera", index=["timestamp"], values="count", aggregate_function="mean"
+    )
+    df = df.select(pl.all().forward_fill(10))  # fill max 10 min
+    df = df.select(pl.all().backward_fill())  # in case first row has nulls
     df = df.with_columns(
         [pl.sum_horizontal(pl.col("^" + x + ".*$")).alias(x) for x in areas]
     )
@@ -65,8 +76,8 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
         b = int(max(x[1] for x in items)) + 1
 
     # Calculate the dimensions of the array
-    width = (r - l) * 2
-    height = (b - t) * 2
+    width = r - l
+    height = b - t
 
     # Create an empty array filled with zeros
     array = np.zeros((height, width))
@@ -75,10 +86,13 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
     for x, y, val in items:
         if l <= x < r and t <= y < b:  # Check if the point is within the crop area
             # Convert coordinates to array indices
-            j = int((x - l) * 2)
-            i = int((y - t) * 2)
+            j = int((x - l))
+            i = int((y - t))
             if 0 <= i < height and 0 <= j < width:
-                array[height - i - 1, j] = min(round(val, 1), 2.8)
+                calc_value = viz_cal.choice(
+                    [5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2]
+                )
+                array[height - i - 1, j] = min(round(val, 1), calc_value)
 
     return array
 
