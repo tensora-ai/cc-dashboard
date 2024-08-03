@@ -88,11 +88,17 @@ def line_chart(df: pl.DataFrame, areas: set[str]):
 
 
 def heatmap_chart(array, crop):
+    custom_color_scale = [
+        [0, "rgb(101, 227, 5)"],  # Blue at the minimum value
+        [0.5, "rgb(250, 238, 65)"],  # Green at the midpoint
+        [1, "rgb(237, 61, 7)"],  # Red at the maximum value
+    ]
     l, t, r, b = crop
     fig = px.imshow(
         array,
         x=np.linspace(l, r - 0.5, array.shape[1]),
         y=np.linspace(b - 0.5, t, array.shape[0]),
+        # color_continuous_scale=custom_color_scale,
         color_continuous_scale="viridis",
         origin="lower",
         aspect="equal",

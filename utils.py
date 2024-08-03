@@ -66,7 +66,7 @@ def filter_coords(coords: list, crop: list[int]):
     return coords
 
 
-def convert_to_array(items: list[list], crop: tuple | None = None):
+def convert_to_array(items: list[list], date_str: str, crop: tuple | None = None):
     if crop:
         l, t, r, b = crop
     else:
@@ -75,9 +75,14 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
         r = int(max(x[0] for x in items)) + 1
         b = int(max(x[1] for x in items)) + 1
 
+    if date_str == "2024-08-01" or date_str == "2024-07-31":
+        meter_conversion = 2
+    else:
+        meter_conversion = 1
+
     # Calculate the dimensions of the array
-    width = r - l
-    height = b - t
+    width = (r - l) * meter_conversion
+    height = (b - t) * meter_conversion
 
     # Create an empty array filled with zeros
     array = np.zeros((height, width))
@@ -86,8 +91,8 @@ def convert_to_array(items: list[list], crop: tuple | None = None):
     for x, y, val in items:
         if l <= x < r and t <= y < b:  # Check if the point is within the crop area
             # Convert coordinates to array indices
-            j = int((x - l))
-            i = int((y - t))
+            j = int((x - l) * meter_conversion)
+            i = int((y - t) * meter_conversion)
             if 0 <= i < height and 0 <= j < width:
                 calc_value = viz_cal.choice(
                     [5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2]

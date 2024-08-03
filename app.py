@@ -111,7 +111,7 @@ async def content(
                     area2camera[area_name].append(cam_name)
                 else:
                     area2camera[area_name] = [cam_name]
-
+    print(date)
     q = f"""
     SELECT * FROM c
     WHERE STARTSWITH(c.timestamp, '{date}')
@@ -156,7 +156,7 @@ async def content(
             except:
                 print(f"{id}_transformed_density.json not found")
         area_crop = merge_cam_crops(cam_crops)
-        img = convert_to_array(merged_coords, area_crop)
+        img = convert_to_array(merged_coords, date, area_crop)
         densities[a] = heatmap_chart(img, area_crop)
 
     print(round((dt.now() - start).microseconds * 1e-6, 2), "seconds")
